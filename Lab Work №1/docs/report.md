@@ -76,7 +76,8 @@
 4. Гарантирует корректное разделение прав доступа.
 
 # 3. Диаграммы вариантов использования
-<img width="974" height="235" alt="image" src="https://github.com/user-attachments/assets/1d48b57d-265d-4d22-8edc-692a983f5b86" />
+<img width="1151" height="439" alt="image" src="https://github.com/user-attachments/assets/8615472b-e3f0-44c6-b809-22d431fd2fa0" />
+
 
 ```plantuml
 @startuml
@@ -101,32 +102,33 @@ package "Модуль организатора" {
   usecase UC13 as "Создание проекта"
   usecase UC14 as "Формирование итогового\nплана"
 
-  UC1 ..> UC2 : включает
-  UC1 ..> UC3 : включает
+  UC1 ..> UC2 : расширяет
+  UC1 ..> UC3 : расширяет
   UC3 ..> UC4 : расширяет
   UC3 ..> UC5 : расширяет
 
-  UC6 ..> UC1 : включает
   UC7 ..> UC8 : расширяет
 
   UC9 ..> UC10 : включает
-  UC3 ..> UC11 : включает
-  UC3 ..> UC12 : включает
+  UC3 ..> UC11 : расширяет
+  UC3 ..> UC12 : расширяет
 
-  UC13 ..> UC14 : включает
+  UC13 ..> UC14 : расширяет
 }
 
 
-org --> UC6
-org --> UC7
-org --> UC9
-org --> UC13
+org -- UC6
+org -- UC7
+org -- UC9
+org -- UC13
+org -- UC1
 
 
 @enduml
 ```
 
-<img width="668" height="559" alt="image" src="https://github.com/user-attachments/assets/2b9e823c-a2f2-45b7-b01a-586dbb935dc2" />
+<img width="427" height="358" alt="image" src="https://github.com/user-attachments/assets/f8577c85-815c-4775-bd60-389dd5f2204a" />
+
 
 ```plantuml
 @startuml
@@ -142,15 +144,11 @@ package "Модуль площадки" {
   usecase UC4 as "Указание доступности\nпо датам"
 }
 
-rep --> UC1
-rep --> UC2
-rep --> UC3
-rep --> UC4
+rep -- UC1
+rep -- UC2
+rep -- UC3
+rep -- UC4
 
-@enduml
-org --> UC7
-org --> UC9
-org --> UC13
 
 @enduml
 ```
