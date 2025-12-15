@@ -1,4 +1,4 @@
-# Диаграмма системного контекста
+# Диаграмма системного контекста 
 <img width="721" height="874" alt="image" src="https://github.com/user-attachments/assets/938675db-e67e-4ef5-bbbb-c57a076ec877" />
 
 
