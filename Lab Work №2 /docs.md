@@ -158,148 +158,174 @@ Rel(data_service, database, "Обновляет данные о площадка
 # Диаграмма компонентов 
 ## Backend API
 
-<img width="2084" height="1099" alt="image" src="https://github.com/user-attachments/assets/6d0cd1cd-eb1d-4bc5-97ed-a04a513b7416" />
+<img width="2404" height="1557" alt="image" src="https://github.com/user-attachments/assets/b4ed33cc-4550-4234-bf21-47f6b53a3516" />
+
 
 ```PlantUML
 @startuml
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 
-title Диаграмма компонентов: Backend API (Application)
+title Диаграмма компонентов: Бэкенд API
 
-Container(backend_api, "Backend API", "Java/Spring Boot", "Основная бизнес-логика системы")
 
-Container_Boundary(api_boundary, "Backend API") {
+Container_Boundary(backend_boundary, "Бэкенд API") {
     Component(api_gateway, "API Gateway", "Spring Cloud Gateway", "Маршрутизация и балансировка запросов")
     
-    Component(user_controller, "UserController", "REST Controller", "Обработка запросов пользователей")
-    Component(team_controller, "TeamController", "REST Controller", "Управление командами")
-    Component(venue_controller, "VenueController", "REST Controller", "Поиск и фильтрация площадок")
-    Component(budget_controller, "BudgetController", "REST Controller", "Работа со сметами расходов")
-    Component(voting_controller, "VotingController", "REST Controller", "Управление голосованиями")
+    ' Контроллеры (точки входа)
+    Component(user_controller, "UserController", "REST Controller", "Вход: HTTP запросы на /api/users/**")
+    Component(project_controller, "ProjectController", "REST Controller", "Вход: HTTP запросы на /api/projects/**")
+    Component(team_controller, "TeamController", "REST Controller", "Вход: HTTP запросы на /api/teams/**")
+    Component(venue_controller, "VenueController", "REST Controller", "Вход: HTTP запросы на /api/venues/**")
+    Component(budget_controller, "BudgetController", "REST Controller", "Вход: HTTP запросы на /api/budgets/**")
+    Component(voting_controller, "VotingController", "REST Controller", "Вход: HTTP запросы на /api/votings/**")
     
-    Component(team_service, "TeamManagementService", "Spring Service", "Логика управления командами")
-    Component(venue_service, "VenueSearchService", "Spring Service", "Логика поиска площадок")
-    Component(budget_service, "BudgetComparisonService", "Spring Service", "Логика сравнения бюджетов")
-    Component(collaboration_service, "CollaborationService", "Spring Service", "Логика сбора мнений")
+    ' Сервисы бизнес-логики
+    Component(user_service, "UserService", "Spring Service", "Вход: DTO от контроллеров, события от очереди")
+    Component(project_service, "ProjectService", "Spring Service", "Вход: Данные проектов, критерии поиска")
+    Component(team_service, "TeamService", "Spring Service", "Вход: Запросы на управление командой")
+    Component(venue_service, "VenueService", "Spring Service", "Вход: Параметры поиска, данные для сравнения")
+    Component(budget_service, "BudgetService", "Spring Service", "Вход: Бюджетные статьи, ограничения")
+    Component(collaboration_service, "CollaborationService", "Spring Service", "Вход: Голоса, комментарии, предпочтения")
     
-    Component(user_repo, "UserRepository", "Spring Data JPA", "Доступ к данным пользователей")
-    Component(venue_repo, "VenueRepository", "Spring Data JPA", "Доступ к данным площадок")
-    Component(team_repo, "TeamRepository", "Spring Data JPA", "Доступ к данным команд")
-    Component(budget_repo, "BudgetRepository", "Spring Data JPA", "Доступ к данным смет")
+    ' Репозитории доступа к данным
+    Component(user_repository, "UserRepository", "Spring Data JPA", "Вход: Entity объекты, критерии поиска")
+    Component(project_repository, "ProjectRepository", "Spring Data JPA", "Вход: Entity проектов, фильтры")
+    Component(team_repository, "TeamRepository", "Spring Data JPA", "Вход: Entity команд, условия выборки")
+    Component(venue_repository, "VenueRepository", "Spring Data JPA", "Вход: Entity площадок, геоданные")
+    Component(budget_repository, "BudgetRepository", "Spring Data JPA", "Вход: Entity бюджетов, агрегации")
     
-    Component(notification_client, "NotificationClient", "Java Client", "Клиент для Email/SMS сервиса")
-    Component(payment_client, "PaymentGatewayClient", "Java Client", "Клиент для платежного шлюза")
-    Component(scraping_client, "ScrapingServiceClient", "Java Client", "Клиент для сервиса кластеризации")
+    ' Клиенты внешних сервисов
+    Component(notification_client, "NotificationClient", "Java Client", "Вход: Данные для уведомлений, шаблоны")
+    Component(payment_client, "PaymentClient", "Java Client", "Вход: Платежные данные, суммы")
+    Component(venue_service_client, "VenueServiceClient", "Java Client", "Вход: Параметры поиска, данные для обогащения")
+    
+    ' Обработчики событий
+    Component(message_consumer, "MessageConsumer", "Spring AMQP", "Вход: События из очереди (JSON)")
 }
 
-ContainerDb(database, "Database", "PostgreSQL")
-Container(message_queue, "Message Queue", "RabbitMQ")
-Container(notification_service, "Email/SMS сервис", "External")
-Container(payment_gateway, "Платежный шлюз", "External")
-Container(scraping_service, "Scraping/Synchronization Service", "Python")
+' Внешние системы и хранилища
+ContainerDb(main_database, "Основная база данных", "PostgreSQL")
+ContainerQueue(message_queue, "Очередь сообщений", "RabbitMQ")
+Container(web_app, "Веб-приложение", "React.js/Vue.js")
+System_Ext(notification_service, "Сервис уведомлений", "External")
+System_Ext(payment_gateway, "Платежный шлюз", "External")
+System_Ext(venue_processing_service, "Сервис обработки площадок", "Python")
 
-' Взаимодействия между компонентами внутри Backend API
-Rel(api_gateway, user_controller, "Маршрутизирует запросы", "HTTP")
-Rel(api_gateway, team_controller, "Маршрутизирует запросы", "HTTP")
-Rel(api_gateway, venue_controller, "Маршрутизирует запросы", "HTTP")
-Rel(api_gateway, budget_controller, "Маршрутизирует запросы", "HTTP")
-Rel(api_gateway, voting_controller, "Маршрутизирует запросы", "HTTP")
 
-Rel(user_controller, team_service, "Вызывает методы сервиса", "Java method")
-Rel(team_controller, team_service, "Вызывает методы сервиса", "Java method")
-Rel(venue_controller, venue_service, "Вызывает методы сервиса", "Java method")
-Rel(budget_controller, budget_service, "Вызывает методы сервиса", "Java method")
-Rel(voting_controller, collaboration_service, "Вызывает методы сервиса", "Java method")
+Rel(web_app, api_gateway, "Входные HTTP запросы:\n• REST API вызовы\n• JWT токены аутентификации\n• JSON данные", "HTTPS/JSON")
+Rel(api_gateway, user_controller, "Маршрутизированные запросы:\n• POST /api/users/register\n• GET /api/users/profile", "HTTP")
+Rel(api_gateway, project_controller, "Маршрутизированные запросы:\n• POST /api/projects\n• GET /api/projects/search", "HTTP")
+Rel(api_gateway, team_controller, "Маршрутизированные запросы:\n• POST /api/teams/invite\n• PUT /api/teams/members", "HTTP")
+Rel(api_gateway, venue_controller, "Маршрутизированные запросы:\n• GET /api/venues/search\n• POST /api/venues/compare", "HTTP")
+Rel(api_gateway, budget_controller, "Маршрутизированные запросы:\n• POST /api/budgets\n• GET /api/budgets/compare", "HTTP")
+Rel(api_gateway, voting_controller, "Маршрутизированные запросы:\n• POST /api/votings/vote\n• GET /api/votings/results", "HTTP")
 
-Rel(team_service, user_repo, "Использует для доступа к данным", "Java method")
-Rel(venue_service, venue_repo, "Использует для доступа к данным", "Java method")
-Rel(team_service, team_repo, "Использует для доступа к данным", "Java method")
-Rel(budget_service, budget_repo, "Использует для доступа к данным", "Java method")
-Rel(collaboration_service, user_repo, "Использует для доступа к данным", "Java method")
+Rel(message_queue, message_consumer, "Входящие события:\n• venue_data_updated\n• team_invitation_sent\n• payment_processed", "AMQP/JSON")
+Rel(message_consumer, venue_service, "Обработанные события:\n• Обновления данных площадок\n• Результаты кластеризации", "Java event")
+Rel(message_consumer, team_service, "Обработанные события:\n• Подтверждения приглашений\n• Изменения состава команды", "Java event")
 
-Rel(team_service, notification_client, "Отправляет приглашения в команду", "Java method")
-Rel(collaboration_service, notification_client, "Отправляет уведомления о голосованиях", "Java method")
-Rel(budget_service, payment_client, "Инициирует платежи за аренду", "Java method")
-Rel(venue_service, scraping_client, "Запрашивает кластеризацию площадок", "Java method")
+Rel(user_controller, user_service, "DTO пользователей:\n• UserRegistrationDTO\n• UserProfileUpdateDTO", "Java method")
+Rel(project_controller, project_service, "DTO проектов:\n• ProjectCreateDTO\n• ProjectSearchCriteria", "Java method")
+Rel(team_controller, team_service, "DTO команд:\n• TeamInvitationDTO\n• TeamMemberUpdateDTO", "Java method")
+Rel(venue_controller, venue_service, "DTO площадок:\n• VenueSearchDTO\n• VenueComparisonRequest", "Java method")
+Rel(budget_controller, budget_service, "DTO бюджетов:\n• BudgetCreateDTO\n• BudgetComparisonRequest", "Java method")
+Rel(voting_controller, collaboration_service, "DTO голосований:\n• VoteDTO\n• CommentCreateDTO", "Java method")
 
-' Внешние взаимодействия
-Rel(user_repo, database, "Выполняет SQL-запросы", "JDBC")
-Rel(venue_repo, database, "Выполняет SQL-запросы", "JDBC")
-Rel(team_repo, database, "Выполняет SQL-запросы", "JDBC")
-Rel(budget_repo, database, "Выполняет SQL-запросы", "JDBC")
+Rel(user_service, user_repository, "Entity и критерии:\n• User entity\n• Specification для поиска", "Java method")
+Rel(project_service, project_repository, "Entity и критерии:\n• Project entity\n• Pageable запросы", "Java method")
+Rel(team_service, team_repository, "Entity и критерии:\n• Team entity\n• Join условия", "Java method")
+Rel(venue_service, venue_repository, "Entity и критерии:\n• Venue entity\n• Гео-запросы", "Java method")
+Rel(budget_service, budget_repository, "Entity и критерии:\n• Budget entity\n• Агрегации по статьям", "Java method")
 
-Rel(notification_client, notification_service, "Отправляет уведомления", "SMTP/API")
-Rel(payment_client, payment_gateway, "Инициирует платежи", "HTTPS")
-Rel(scraping_client, scraping_service, "Запрашивает обработку данных", "REST")
+Rel(user_repository, main_database, "SQL запросы:\n• INSERT/UPDATE пользователей\n• SELECT с JOIN", "JDBC/SQL")
+Rel(project_repository, main_database, "SQL запросы:\n• Транзакции проектов\n• Сложные запросы с подзапросами", "JDBC/SQL")
+Rel(team_repository, main_database, "SQL запросы:\n• Управление связями\n• Оптимизированные выборки", "JDBC/SQL")
+Rel(venue_repository, main_database, "SQL запросы:\n• Пространственные запросы\n• Полнотекстовый поиск", "JDBC/SQL")
+Rel(budget_repository, main_database, "SQL запросы:\n• Агрегатные функции\n• Window функции", "JDBC/SQL")
 
-Rel(team_service, message_queue, "Публикует события создания команды", "AMQP")
-Rel(venue_service, message_queue, "Публикует события добавления площадки", "AMQP")
+Rel(team_service, notification_client, "Данные для уведомлений:\n• Email получателя\n• Шаблон приглашения\n• Контекстные данные", "Java method")
+Rel(collaboration_service, notification_client, "Данные для уведомлений:\n• Список участников\n• Данные голосования\n• Ссылки", "Java method")
+Rel(budget_service, payment_client, "Платежные данные:\n• Сумма и валюта\n• Описание платежа\n• Return URL", "Java method")
+Rel(venue_service, venue_service_client, "Запросы на обработку:\n• Критерии поиска\n• Данные для обогащения\n• Параметры кластеризации", "Java method")
+
+Rel(notification_client, notification_service, "Запросы на отправку:\n• SMTP/API вызовы\n• JSON payload", "SMTP/API/JSON")
+Rel(payment_client, payment_gateway, "Платежные запросы:\n• HTTPS вызовы\n• Зашифрованные данные", "HTTPS API/JSON")
+Rel(venue_service_client, venue_processing_service, "Запросы на обработку:\n• REST API вызовы\n• Пакетные данные", "REST API/JSON")
+
+Rel(team_service, message_queue, "Исходящие события:\n• team_created\n• member_added\n• invitation_accepted", "AMQP/JSON")
+Rel(venue_service, message_queue, "Исходящие события:\n• venue_search_requested\n• comparison_completed", "AMQP/JSON")
+Rel(budget_service, message_queue, "Исходящие события:\n• budget_created\n• payment_initiated\n• threshold_exceeded", "AMQP/JSON")
 
 @enduml
 ```
 
-## Scraping/Synchronization Service
+## Диаграмма компонентов: VenueService
 
-<img width="1090" height="1158" alt="image" src="https://github.com/user-attachments/assets/68ad39b6-7385-41ae-a51b-8e7e31da6b2e" />
+<img width="2518" height="1044" alt="image" src="https://github.com/user-attachments/assets/7be851be-783e-47f1-b3b6-617701002388" />
+
 
 ```PlantUML
 @startuml
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 
-title Диаграмма компонентов: Scraping/Synchronization Service
+title Диаграмма компонентов: VenueService (детализация с входами)
 
-Container(background_service, "Scraping/Synchronization Service", "Python", "Фоновый сервис кластеризации и синхронизации")
 
-Container_Boundary(service_boundary, "Scraping/Synchronization Service") {
-    Component(event_listener, "Event Listeners", "Python + pika/redis", "Слушает события из Message Queue")
-    Component(scheduled_trigger, "ScheduledSyncTrigger", "Python Celery", "Планировщик периодических задач")
-    
-    Component(sync_orchestrator, "DataSynchronizationOrchestrator", "Python Service", "Координатор процессов синхронизации")
-    Component(api_client, "ExternalApiClient", "Python Requests", "Клиент для внешних API агрегаторов")
-    Component(data_enricher, "DataEnrichmentProcessor", "Python Service", "Обработка и обогащение данных")
-    
-    Component(clustering_engine, "ClusteringEngine", "Python + scikit-learn", "ML-алгоритмы кластеризации")
-    
-    Component(data_publisher, "ProcessedDataPublisher", "Python Service", "Публикация обработанных данных")
-}
+  Component(venue_controller, "VenueController", "REST Controller", "HTTP вход для работы с площадками")
+  Component(message_consumer, "MessageConsumer", "Spring AMQP Listener", "Асинхронные события из очереди")
 
-ContainerDb(database, "Database", "PostgreSQL")
-Container(message_queue, "Message Queue", "RabbitMQ")
-System_Ext(aggregator_api, "Внешние API агрегаторов", "REST API")
-System_Ext(backend_api, "Backend API", "Java/Spring Boot")
+  Container_Boundary(venue_service_boundary, "VenueService") {
 
-' Внутренние взаимодействия
-Rel(event_listener, sync_orchestrator, "Передает событие о новой площадке", "Python call")
-Rel(scheduled_trigger, sync_orchestrator, "Запускает периодическую синхронизацию", "Python call")
+      Component(venue_service_facade, "VenueService", "Spring Service", "Фасад бизнес-логики площадок")
 
-Rel(sync_orchestrator, api_client, "Запрашивает сбор данных", "Python call")
-Rel(api_client, aggregator_api, "Получает данные о площадках", "REST/HTTPS")
+      Component(search_engine, "VenueSearchEngine", "Spring Service", "Поиск площадок")
+      Component(comparison_engine, "VenueComparisonEngine", "Spring Service", "Сравнение площадок")
+      Component(recommendation_engine, "VenueRecommendationEngine", "Spring Service", "Рекомендации")
 
-Rel(sync_orchestrator, data_enricher, "Передает данные для обработки", "Python call")
-Rel(data_enricher, clustering_engine, "Запрашивает кластеризацию данных", "Python call")
+      Component(availability_checker, "AvailabilityChecker", "Spring Service", "Проверка доступности дат")
+      Component(price_analyzer, "PriceAnalyzer", "Spring Service", "Анализ цен и бюджета")
 
-Rel(data_enricher, data_publisher, "Передает обработанные данные", "Python call")
+      Component(data_enricher, "VenueDataEnricher", "Spring Service", "Обогащение данных")
+      Component(validation_service, "VenueValidationService", "Spring Validator", "Валидация входных данных")
+      Component(cache_manager, "VenueCacheManager", "Spring Cache", "Кэширование результатов")
 
-' Внешние взаимодействия
-Rel(event_listener, message_queue, "Слушает события (новая_площадка, обновление)", "AMQP")
-Rel(data_publisher, database, "Записывает обогащенные данные о площадках", "SQLAlchemy")
-Rel(data_publisher, backend_api, "Отправляет результаты кластеризации", "REST/HTTPS")
-Rel(data_publisher, message_queue, "Публикует события об обновлении данных", "AMQP")
+      Component(event_publisher, "VenueEventPublisher", "Spring AMQP", "Публикация доменных событий")
+  }
 
-' Комментарии для пояснения
-note right of clustering_engine
-  <b>Алгоритмы кластеризации:</b>
-  - k-means для категоризации
-  - NLP для анализа описаний
-  - CV для анализа фото
-end note
 
-note right of data_enricher
-  <b>Пометка данных:</b>
-  Если информации недостаточно,
-  устанавливает флаг
-  "requires_contact"
-end note
+
+Component(venue_repository, "VenueRepository", "Spring Data JPA", "Доступ к данным площадок")
+Component(venue_service_client, "VenueServiceClient", "Feign Client", "Вызов внешнего сервиса")
+
+ContainerDb(main_database, "Основная БД", "PostgreSQL")
+Container(cache_store, "Кэш", "Redis")
+System_Ext(message_queue, "Очередь сообщений", "RabbitMQ")
+System_Ext(venue_processing_service, "Сервис обработки площадок", "External")
+
+Rel(venue_controller, venue_service_facade, "HTTP запросы /api/venues/**", "REST/JSON")
+Rel(message_consumer, venue_service_facade, "События venue_*", "Java event")
+
+Rel(venue_service_facade, validation_service, "Валидация DTO", "Java")
+Rel(venue_service_facade, cache_manager, "Проверка кэша", "Java")
+Rel(cache_manager, cache_store, "Чтение / запись", "Redis")
+
+Rel(venue_service_facade, search_engine, "Поиск площадок", "Java")
+Rel(search_engine, venue_repository, "JPA запросы", "JPA")
+Rel(venue_repository, main_database, "SQL", "JDBC")
+
+Rel(venue_service_facade, comparison_engine, "Сравнение", "Java")
+Rel(venue_service_facade, recommendation_engine, "Рекомендации", "Java")
+
+Rel(venue_service_facade, availability_checker, "Проверка доступности", "Java")
+Rel(venue_service_facade, price_analyzer, "Анализ цен", "Java")
+
+Rel(venue_service_facade, venue_service_client, "Запрос обогащения", "Feign")
+Rel(venue_service_client, venue_processing_service, "REST вызов", "HTTP/JSON")
+Rel(data_enricher, venue_service_facade, "Обогащённые данные", "Java")
+
+Rel(venue_service_facade, event_publisher, "Доменные события", "Java")
+Rel(event_publisher, message_queue, "Публикация событий", "AMQP")
 
 @enduml
+
 ```
