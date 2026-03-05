@@ -5,7 +5,7 @@ from flask_cors import CORS
 from psycopg2.extras import RealDictCursor
 
 app = Flask(__name__)
-CORS(app)  # разрешаем запросы с фронтенда
+CORS(app)
 
 def get_db_connection():
     conn = psycopg2.connect(
@@ -16,18 +16,20 @@ def get_db_connection():
     )
     return conn
 
-@app.route('/api/events', methods=['GET'])
-def get_events():
+# Получить все проекты
+@app.route('/api/projects', methods=['GET'])
+def get_projects():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute('SELECT * FROM events ORDER BY id;')
-    events = cur.fetchall()
+    cur.execute('SELECT * FROM projects ORDER BY id;')
+    projects = cur.fetchall()
     cur.close()
     conn.close()
-    return jsonify(events)
+    return jsonify(projects)
 
-@app.route('/api/events', methods=['POST'])
-def create_event():
+# Создать новый проект
+@app.route('/api/projects', methods=['POST'])
+def create_project():
     data = request.get_json()
     name = data['name']
     date = data['date']
@@ -37,29 +39,31 @@ def create_event():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute(
-        'INSERT INTO events (name, date, location, description) VALUES (%s, %s, %s, %s) RETURNING *;',
+        'INSERT INTO projects (name, date, location, description) VALUES (%s, %s, %s, %s) RETURNING *;',
         (name, date, location, description)
     )
-    new_event = cur.fetchone()
+    new_project = cur.fetchone()
     conn.commit()
     cur.close()
     conn.close()
-    return jsonify(new_event), 201
+    return jsonify(new_project), 201
 
-@app.route('/api/events/<int:id>', methods=['GET'])
-def get_event(id):
+# Получить проект по id
+@app.route('/api/projects/<int:id>', methods=['GET'])
+def get_project(id):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute('SELECT * FROM events WHERE id = %s;', (id,))
-    event = cur.fetchone()
+    cur.execute('SELECT * FROM projects WHERE id = %s;', (id,))
+    project = cur.fetchone()
     cur.close()
     conn.close()
-    if event:
-        return jsonify(event)
-    return jsonify({'error': 'Event not found'}), 404
+    if project:
+        return jsonify(project)
+    return jsonify({'error': 'Project not found'}), 404
 
-@app.route('/api/events/<int:id>', methods=['PUT'])
-def update_event(id):
+# Обновить проект
+@app.route('/api/projects/<int:id>', methods=['PUT'])
+def update_project(id):
     data = request.get_json()
     name = data['name']
     date = data['date']
@@ -69,29 +73,30 @@ def update_event(id):
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute(
-        'UPDATE events SET name = %s, date = %s, location = %s, description = %s WHERE id = %s RETURNING *;',
+        'UPDATE projects SET name = %s, date = %s, location = %s, description = %s WHERE id = %s RETURNING *;',
         (name, date, location, description, id)
     )
-    updated_event = cur.fetchone()
+    updated_project = cur.fetchone()
     conn.commit()
     cur.close()
     conn.close()
-    if updated_event:
-        return jsonify(updated_event)
-    return jsonify({'error': 'Event not found'}), 404
+    if updated_project:
+        return jsonify(updated_project)
+    return jsonify({'error': 'Project not found'}), 404
 
-@app.route('/api/events/<int:id>', methods=['DELETE'])
-def delete_event(id):
+# Удалить проект
+@app.route('/api/projects/<int:id>', methods=['DELETE'])
+def delete_project(id):
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute('DELETE FROM events WHERE id = %s;', (id,))
+    cur.execute('DELETE FROM projects WHERE id = %s;', (id,))
     deleted = cur.rowcount
     conn.commit()
     cur.close()
     conn.close()
     if deleted:
         return '', 204
-    return jsonify({'error': 'Event not found'}), 404
+    return jsonify({'error': 'Project not found'}), 404
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
