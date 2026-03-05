@@ -1,25 +1,25 @@
-const API_URL = 'http://localhost:5000/api/events';
+const API_URL = 'http://localhost:5000/api/projects';
 
-async function loadEvents() {
+async function loadProjects() {
     const response = await fetch(API_URL);
-    const events = await response.json();
-    const list = document.getElementById('events-list');
+    const projects = await response.json();
+    const list = document.getElementById('projects-list');
     list.innerHTML = '';
-    events.forEach(event => {
+    projects.forEach(project => {
         const div = document.createElement('div');
-        div.className = 'event';
+        div.className = 'project';
         div.innerHTML = `
-            <h3>${event.name}</h3>
-            <p><strong>Date:</strong> ${event.date}</p>
-            <p><strong>Location:</strong> ${event.location}</p>
-            <p>${event.description}</p>
-            <button onclick="deleteEvent(${event.id})">Delete</button>
+            <h3>${project.name}</h3>
+            <p><strong>Дата:</strong> ${project.date}</p>
+            <p><strong>Площадка:</strong> ${project.location}</p>
+            <p>${project.description}</p>
+            <button onclick="deleteProject(${project.id})">Удалить</button>
         `;
         list.appendChild(div);
     });
 }
 
-document.getElementById('event-form').addEventListener('submit', async (e) => {
+document.getElementById('project-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = {
         name: document.getElementById('name').value,
@@ -32,13 +32,13 @@ document.getElementById('event-form').addEventListener('submit', async (e) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
     });
-    loadEvents();
+    loadProjects();
     e.target.reset();
 });
 
-async function deleteEvent(id) {
+async function deleteProject(id) {
     await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-    loadEvents();
+    loadProjects();
 }
 
-loadEvents();
+loadProjects();
