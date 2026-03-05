@@ -2,20 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Event Manager</title>
+    <title>Project Manager for Events</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Events</h1>
-    <form id="event-form">
-        <input type="text" id="name" placeholder="Event name" required>
+    <h1>Проекты мероприятий</h1>
+    <form id="project-form">
+        <input type="text" id="name" placeholder="Название проекта" required>
         <input type="date" id="date" required>
-        <input type="text" id="location" placeholder="Location" required>
-        <textarea id="description" placeholder="Description"></textarea>
-        <button type="submit">Add Event</button>
+        <input type="text" id="location" placeholder="Площадка / место" required>
+        <textarea id="description" placeholder="Описание, комментарии"></textarea>
+        <button type="submit">Добавить проект</button>
     </form>
     <hr>
-    <div id="events-list"></div>
+    <div id="projects-list"></div>
 
     <script src="script.js"></script>
 </body>
