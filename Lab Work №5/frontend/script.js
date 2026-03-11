@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api/projects';const API_URL = 'http://localhost:5000/api/projects';
+const API_URL = window.location.protocol + '//' + window.location.hostname + ':5000/api/projects';
 
 async function loadProjects() {
     const response = await fetch(API_URL);
