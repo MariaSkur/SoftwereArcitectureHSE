@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+      - rabbitmq
+
+  data-service:
+    build: ./data-service
+    depends_on:
+      - rabbitmq
+      - database
+
+  database:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: event
+      POSTGRES_PASSWORD: event
+      POSTGRES_DB: eventdb
+    ports:
+      - "5432:5432"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
