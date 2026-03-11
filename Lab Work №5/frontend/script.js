@@ -1,7 +1,7 @@
-const API_URL = 'http://localhost:5000/api/projects';
+const API_URL = 'http://localhost:5000/api/projects';const API_URL = 'http://localhost:5000/api/projects';
 
 async function loadProjects() {
-    const API_URL = 'http://localhost:5000/api/projects';
+    const response = await fetch(API_URL);
     const projects = await response.json();
     const list = document.getElementById('projects-list');
     list.innerHTML = '';
