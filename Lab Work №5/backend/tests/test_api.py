@@ -2,66 +2,65 @@ import unittest
 import requests
 import time
 
-BASE_URL = "http://localhost:5000/api/events"
+BASE_URL = "http://localhost:5000/api/projects"
 
-class TestEventAPI(unittest.TestCase):
+class TestProjectAPI(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        # Ждём, пока backend и БД полностью поднимутся
+        # Даём время контейнерам полностью подняться
         time.sleep(5)
 
-    def test_1_create_event(self):
+    def test_1_create_project(self):
         payload = {
-            "name": "Test Event",
-            "date": "2025-12-31",
-            "location": "Test Location",
-            "description": "Test Description"
+            "name": "Молодёжный форум",
+            "date": "2025-06-15",
+            "location": "ДК «Мир»",
+            "description": "Обсуждение инициатив"
         }
         resp = requests.post(BASE_URL, json=payload)
         self.assertEqual(resp.status_code, 201)
         data = resp.json()
         self.assertIn("id", data)
         self.assertEqual(data["name"], payload["name"])
-        # сохраним id для следующих тестов
-        self.__class__.event_id = data["id"]
+        self.__class__.project_id = data["id"]
 
-    def test_2_get_events(self):
+    def test_2_get_projects(self):
         resp = requests.get(BASE_URL)
         self.assertEqual(resp.status_code, 200)
-        events = resp.json()
-        self.assertIsInstance(events, list)
-        self.assertGreaterEqual(len(events), 1)
+        projects = resp.json()
+        self.assertIsInstance(projects, list)
+        self.assertGreaterEqual(len(projects), 1)
 
-    def test_3_get_event_by_id(self):
-        if not hasattr(self, 'event_id'):
-            self.skipTest("No event id from previous test")
-        resp = requests.get(f"{BASE_URL}/{self.event_id}")
+    def test_3_get_project_by_id(self):
+        if not hasattr(self, 'project_id'):
+            self.skipTest("No project id from previous test")
+        resp = requests.get(f"{BASE_URL}/{self.project_id}")
         self.assertEqual(resp.status_code, 200)
-        event = resp.json()
-        self.assertEqual(event["id"], self.event_id)
+        project = resp.json()
+        self.assertEqual(project["id"], self.project_id)
 
-    def test_4_update_event(self):
-        if not hasattr(self, 'event_id'):
-            self.skipTest("No event id from previous test")
+    def test_4_update_project(self):
+        if not hasattr(self, 'project_id'):
+            self.skipTest("No project id from previous test")
         payload = {
-            "name": "Updated Event",
-            "date": "2026-01-01",
-            "location": "Updated Location",
-            "description": "Updated Description"
+            "name": "Обновлённый форум",
+            "date": "2025-07-20",
+            "location": "Парк культуры",
+            "description": "Обновлённое описание"
         }
-        resp = requests.put(f"{BASE_URL}/{self.event_id}", json=payload)
+        resp = requests.put(f"{BASE_URL}/{self.project_id}", json=payload)
         self.assertEqual(resp.status_code, 200)
         updated = resp.json()
         self.assertEqual(updated["name"], payload["name"])
 
-    def test_5_delete_event(self):
-        if not hasattr(self, 'event_id'):
-            self.skipTest("No event id from previous test")
-        resp = requests.delete(f"{BASE_URL}/{self.event_id}")
+    def test_5_delete_project(self):
+        if not hasattr(self, 'project_id'):
+            self.skipTest("No project id from previous test")
+        resp = requests.delete(f"{BASE_URL}/{self.project_id}")
         self.assertEqual(resp.status_code, 204)
         # проверяем, что удалено
-        resp = requests.get(f"{BASE_URL}/{self.event_id}")
+        resp = requests.get(f"{BASE_URL}/{self.project_id}")
         self.assertEqual(resp.status_code, 404)
 
 if __name__ == '__main__':
