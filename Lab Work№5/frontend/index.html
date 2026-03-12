@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>Event Organizer System</title>
+</head>
+
+<body>
+
+<h1>Event Organizer</h1>
+
+<button onclick="load()">Load Venues</button>
+
+<div id="result"></div>
+
+<script>
+
+async function load(){
+
+const res = await fetch("http://localhost:8080/venues")
+const text = await res.text()
+
+document.getElementById("result").innerText = text
+
+}
+
+</script>
+
+</body>
+
+</html>
