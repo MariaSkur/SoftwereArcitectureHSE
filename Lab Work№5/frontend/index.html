@@ -17,7 +17,8 @@
 
 async function load(){
 
-const res = await fetch("http://localhost:8080/venues")
+const res = await fetch("http://backend:8080/api/venues")
+
 const text = await res.text()
 
 document.getElementById("result").innerText = text
