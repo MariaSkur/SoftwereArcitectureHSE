@@ -1,32 +1,22 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-<title>Event Organizer System</title>
+    <meta charset="UTF-8">
+    <title>Project Manager for Events</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+    <h1>Проекты мероприятий</h1>
+    <form id="project-form">
+        <input type="text" id="name" placeholder="Название проекта" required>
+        <input type="date" id="date" required>
+        <input type="text" id="location" placeholder="Площадка / место" required>
+        <textarea id="description" placeholder="Описание, комментарии"></textarea>
+        <button type="submit">Добавить проект</button>
+    </form>
+    <hr>
+    <div id="projects-list"></div>
 
-<h1>Event Organizer</h1>
-
-<button onclick="load()">Load Venues</button>
-
-<div id="result"></div>
-
-<script>
-
-async function load(){
-
-const res = await fetch("http://backend:8080/api/venues")
-
-const text = await res.text()
-
-document.getElementById("result").innerText = text
-
-}
-
-</script>
-
+    <script src="script.js"></script>
 </body>
-
 </html>
