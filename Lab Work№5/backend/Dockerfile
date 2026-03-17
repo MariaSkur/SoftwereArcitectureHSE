@@ -1,9 +1,10 @@
-FROM maven:3.9.9-eclipse-temurin-21
+FROM python:3.9-slim
 
 WORKDIR /app
 
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
 COPY . .
 
-RUN mvn clean package -DskipTests
-
-CMD ["java","-jar","target/backend-1.0.jar"]
+CMD ["python", "app.py"]
