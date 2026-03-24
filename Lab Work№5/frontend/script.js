@@ -1,44 +1,77 @@
-const API_URL = window.location.protocol + '//' + window.location.hostname + ':5000/api/projects';
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('project-form');
+    const projectsList = document.getElementById('projects-list');
+    const API_URL = '/api/projects'; // проксируется через nginx
 
-async function loadProjects() {
-    const response = await fetch(API_URL);
-    const projects = await response.json();
-    const list = document.getElementById('projects-list');
-    list.innerHTML = '';
-    projects.forEach(project => {
-        const div = document.createElement('div');
-        div.className = 'project';
-        div.innerHTML = `
-            <h3>${project.name}</h3>
-            <p><strong>Дата:</strong> ${project.date}</p>
-            <p><strong>Площадка:</strong> ${project.location}</p>
-            <p>${project.description}</p>
-            <button onclick="deleteProject(${project.id})">Удалить</button>
-        `;
-        list.appendChild(div);
-    });
-}
+    // Загружаем все проекты при старте
+    fetchProjects();
 
-document.getElementById('project-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = {
-        name: document.getElementById('name').value,
-        date: document.getElementById('date').value,
-        location: document.getElementById('location').value,
-        description: document.getElementById('description').value
-    };
-    await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+    // Обработчик отправки формы
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('name').value;
+        const date = document.getElementById('date').value;
+        const location = document.getElementById('location').value;
+        const description = document.getElementById('description').value;
+
+        const project = { name, date, location, description };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(project)
+            });
+            if (!response.ok) throw new Error('Ошибка при добавлении');
+            const newProject = await response.json();
+            // Очистить форму
+            form.reset();
+            // Обновить список
+            await fetchProjects();
+        } catch (err) {
+            console.error(err);
+            alert('Не удалось добавить проект');
+        }
     });
-    loadProjects();
-    e.target.reset();
+
+    // Функция загрузки проектов и отображения
+    async function fetchProjects() {
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) throw new Error('Ошибка загрузки');
+            const projects = await response.json();
+            renderProjects(projects);
+        } catch (err) {
+            console.error(err);
+            projectsList.innerHTML = '<p>Не удалось загрузить проекты</p>';
+        }
+    }
+
+    // Отображение списка проектов
+    function renderProjects(projects) {
+        if (!projects.length) {
+            projectsList.innerHTML = '<p>Нет проектов. Добавьте первый!</p>';
+            return;
+        }
+        projectsList.innerHTML = projects.map(project => `
+            <div class="project-item">
+                <h3>${escapeHtml(project.name)}</h3>
+                <p><strong>Дата:</strong> ${escapeHtml(project.date)}</p>
+                <p><strong>Место:</strong> ${escapeHtml(project.location)}</p>
+                <p><strong>Описание:</strong> ${escapeHtml(project.description)}</p>
+            </div>
+        `).join('');
+    }
+
+    // Простая защита от XSS
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
 });
-
-async function deleteProject(id) {
-    await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-    loadProjects();
-}
-
-loadProjects();
