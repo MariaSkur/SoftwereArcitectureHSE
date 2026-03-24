@@ -4,39 +4,37 @@ services:
   db:
     image: postgres:13
     environment:
-      POSTGRES_DB: eventdb
+      POSTGRES_DB: eventplanner
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    volumes:
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
 
   backend:
     build: ./backend
-    environment:
-      DB_HOST: db
-      DB_NAME: eventdb
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-    ports:
-      - "5000:5000"
     depends_on:
       db:
         condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/eventplanner
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
 
   frontend:
     build: ./frontend
-    ports:
-      - "8080:80"
     depends_on:
       - backend
+    ports:
+      - "3000:80"
 
 volumes:
   postgres_data:
